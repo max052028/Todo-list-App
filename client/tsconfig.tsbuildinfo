@@ -1,0 +1,1 @@
+{"root":["./src/main.tsx","./src/components/TaskCard.tsx","./src/lib/api.ts","./src/routes/App.tsx","./src/routes/GlobalTasks.tsx","./src/routes/Join.tsx","./src/routes/ListDetail.tsx","./src/routes/Lists.tsx"],"version":"5.9.2"}
