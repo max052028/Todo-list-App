@@ -1,14 +1,29 @@
-import { Link, Outlet, NavLink } from 'react-router-dom'
-import { getUserId, setUserId, headers as apiHeaders } from '../lib/api'
+import { Link, Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { headers as apiHeaders, fetchWithCreds } from '../lib/api'
 import { useEffect, useState } from 'react'
 
 export default function App() {
   const [lists, setLists] = useState<any[]>([])
+  const [me, setMe] = useState<any | null>(null)
+  const nav = useNavigate()
   const loadLists = async () => {
-    const res = await fetch('/api/lists', { headers: apiHeaders() })
+    const res = await fetchWithCreds('/api/lists', { headers: apiHeaders() })
+    if (res.status === 401) return
     setLists(await res.json())
   }
-  useEffect(() => { loadLists() }, [])
+  const loadMe = async () => {
+    const res = await fetchWithCreds('/api/auth/me', { headers: apiHeaders() })
+    if (!res.ok) { setMe(null); nav('/login'); return }
+    setMe(await res.json())
+  }
+  useEffect(() => { loadMe(); loadLists() }, [])
+
+  const logout = async () => {
+    await fetchWithCreds('/api/auth/logout', { method: 'POST', headers: apiHeaders() })
+    setMe(null)
+    setLists([])
+    nav('/login')
+  }
 
   return (
     <div style={{ fontFamily: 'system-ui, Arial', height: '100vh', display: 'grid', gridTemplateRows: '56px 1fr' }}>
@@ -19,12 +34,14 @@ export default function App() {
           <NavLink to="/tasks">All Tasks</NavLink>
         </nav>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <small>User:</small>
-          <select defaultValue={getUserId()} onChange={e=>{ setUserId(e.target.value); location.reload() }}>
-            <option value="demo-user">demo-user</option>
-            <option value="alice">alice</option>
-            <option value="bob">bob</option>
-          </select>
+          {me ? (
+            <>
+              <small>{me.email || me.name}</small>
+              <button onClick={logout}>Logout</button>
+            </>
+          ) : (
+            <Link to="/login">Login</Link>
+          )}
         </div>
       </header>
       <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', minHeight: 0 }}>

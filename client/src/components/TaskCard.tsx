@@ -7,7 +7,7 @@ type Props = {
 }
 
 export default function TaskCard({ task, assignees = [], isAdmin, onToggle, onAssign }: Props) {
-  const due = task.dueAt ? new Date(task.dueAt) : null
+  const due = task.dueAt ? new Date(Number(task.dueAt)) : null
   const assignee = task.assigneeId || ''
   return (
     <div style={{

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { headers } from '../lib/api'
+import { headers, fetchWithCreds } from '../lib/api'
 
 type Task = { id: string, title: string, status: 'todo'|'doing'|'done', listId: string }
 
@@ -7,7 +7,7 @@ export default function GlobalTasks() {
   const [tasks, setTasks] = useState<Task[]>([])
 
   const load = async () => {
-  const res = await fetch('/api/tasks', { headers: headers() })
+  const res = await fetchWithCreds('/api/tasks', { headers: headers() })
     setTasks(await res.json())
   }
 

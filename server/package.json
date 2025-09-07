@@ -9,9 +9,13 @@
     "build": "esbuild src/index.js --bundle --platform=node --target=node18 --outdir=dist"
   },
   "dependencies": {
+  "bcryptjs": "^2.4.3",
+  "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+  "google-auth-library": "^9.15.1",
+  "jsonwebtoken": "^9.0.2",
     "zod": "^3.23.8"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { headers } from '../lib/api'
+import { headers, fetchWithCreds } from '../lib/api'
 
 export default function Join() {
   const { token } = useParams()
@@ -8,7 +8,7 @@ export default function Join() {
 
   useEffect(() => {
     const run = async () => {
-  const res = await fetch(`/api/join/${token}`, { method: 'POST', headers: headers() })
+  const res = await fetchWithCreds(`/api/join/${token}`, { method: 'POST', headers: headers() })
       setStatus(res.ok ? 'ok' : 'error')
     }
     run()

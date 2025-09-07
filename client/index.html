@@ -11,6 +11,10 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
+      // Set Google Client ID for Login page (edit value or inject via env)
+      window.__GOOGLE_CLIENT_ID = window.__GOOGLE_CLIENT_ID || '';
+    </script>
+    <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js').catch(()=>{})

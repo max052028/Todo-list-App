@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { headers } from '../lib/api'
+import { headers, fetchWithCreds } from '../lib/api'
 
 export default function Lists() {
   const [lists, setLists] = useState<any[]>([])
@@ -10,8 +10,10 @@ export default function Lists() {
   const [joinMsg, setJoinMsg] = useState<string | null>(null)
 
   const load = async () => {
-  const res = await fetch('/api/lists', { headers: headers() })
-    setLists(await res.json())
+    const res = await fetchWithCreds('/api/lists', { headers: headers() })
+    if (!res.ok) return
+    const data = await res.json()
+    if (Array.isArray(data)) setLists(data)
   }
 
   useEffect(() => { load() }, [])
@@ -19,7 +21,7 @@ export default function Lists() {
   const onCreate = async (e: FormEvent) => {
     e.preventDefault()
     if (!name.trim()) return
-  await fetch('/api/lists', { method: 'POST', headers: headers(), body: JSON.stringify({ name, color }) })
+  await fetchWithCreds('/api/lists', { method: 'POST', headers: headers(), body: JSON.stringify({ name, color }) })
     setName('')
     load()
   }
@@ -30,7 +32,7 @@ export default function Lists() {
     if (!raw) return
     const tokenMatch = raw.match(/(?:join\/)?.*?([a-f0-9]{32})$/i)
     const token = tokenMatch ? tokenMatch[1] : raw
-    const res = await fetch(`/api/join/${token}`, { method: 'POST', headers: headers() })
+  const res = await fetchWithCreds(`/api/join/${token}`, { method: 'POST', headers: headers() })
     if (res.ok) {
       setJoinMsg('已加入清單')
       setJoinInput('')
