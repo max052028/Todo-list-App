@@ -21,7 +21,8 @@ export default function Login() {
       setError(err.error || 'Failed')
       return
     }
-    nav('/')
+  window.dispatchEvent(new Event('auth:changed'))
+  nav('/')
   }
 
   // Google Identity Services button
@@ -64,6 +65,7 @@ export default function Login() {
               const idToken = resp.credential
               const r = await fetchWithCreds('/api/auth/google', { method: 'POST', headers: headers(), body: JSON.stringify({ idToken }) })
               if (r.ok) {
+                window.dispatchEvent(new Event('auth:changed'))
                 nav('/')
               } else {
                 const j = await r.json().catch(() => ({} as any))

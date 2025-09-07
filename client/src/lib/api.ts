@@ -16,3 +16,8 @@ export function headers() {
 export const fetchWithCreds = (input: RequestInfo | URL, init: RequestInit = {}) => {
   return fetch(input, { ...init, credentials: 'include' })
 }
+
+// Utility for clearing any dev-only header usage on logout
+export function clearDevUserId() {
+  try { localStorage.removeItem('userId') } catch {}
+}

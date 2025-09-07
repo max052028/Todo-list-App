@@ -138,7 +138,10 @@ export default function ListDetail() {
         </div>
       )}
       <Link to="/">← Back</Link>
-      <h2>{list.name}</h2>
+      <h2 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span aria-hidden style={{ width: 12, height: 12, borderRadius: '50%', background: list.color || '#e5e7eb', border: '1px solid #d1d5db' }} />
+        {list.name}
+      </h2>
       <div style={{ display: 'flex', gap: 24 }}>
         <section style={{ flex: 1 }}>
           <h3>New Task</h3>
@@ -165,10 +168,10 @@ export default function ListDetail() {
                   })}
                 </select>
               </div>
-              <select value={newAssignee} onChange={e=>setNewAssignee(e.target.value)}>
+              <select value={newAssignee} onChange={e=>setNewAssignee(e.target.value)} style={{ maxWidth: 240 }}>
                 <option value="">未指派</option>
                 {members.map(m => (
-                  <option key={m.userId} value={m.userId}>{m.userId}</option>
+                  <option key={m.userId} value={m.userId}>{m.displayName || m.userId}</option>
                 ))}
               </select>
               <button onClick={createTask}>Add</button>
@@ -186,11 +189,13 @@ export default function ListDetail() {
           <h3>Members</h3>
           <ul>
             {members.map(m => (
-              <li key={m.id} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
-                <span>{m.userId}</span>
-                <span style={{ opacity: 0.6 }}>({m.role})</span>
+              <li key={m.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', columnGap: 8, alignItems: 'center', marginBottom: 6, maxWidth: 360 }}>
+                <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={m.displayName || m.userId}>
+                  {m.displayName || m.userId}
+                  <span style={{ opacity: 0.6 }}> ({m.role})</span>
+                </div>
                 {myRole === 'owner' && (
-                  <select value={m.role} onChange={e=>changeRole(m.userId, e.target.value as any)}>
+                  <select value={m.role} onChange={e=>changeRole(m.userId, e.target.value as any)} style={{ maxWidth: 140 }}>
                     <option value="owner">owner</option>
                     <option value="admin">admin</option>
                     <option value="member">member</option>
@@ -204,11 +209,11 @@ export default function ListDetail() {
       <section>
         <h3>Todo</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
-          {grouped.todo.map((t:any)=> (
+      {grouped.todo.map((t:any)=> (
             <TaskCard
               key={t.id}
-              task={t}
-              assignees={members.map(m => ({ id: m.userId }))}
+        task={t}
+        assignees={members.map(m => ({ id: m.userId, label: m.displayName || m.userId }))}
               isAdmin={isAdmin}
               onToggle={()=>toggle(t)}
               onAssign={(id, userId)=>assign(id, userId)}
@@ -219,11 +224,11 @@ export default function ListDetail() {
       <section>
         <h3>Done</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
-          {grouped.done.map((t:any)=> (
+      {grouped.done.map((t:any)=> (
             <TaskCard
               key={t.id}
-              task={t}
-              assignees={members.map(m => ({ id: m.userId }))}
+        task={t}
+        assignees={members.map(m => ({ id: m.userId, label: m.displayName || m.userId }))}
               isAdmin={isAdmin}
               onToggle={()=>toggle(t)}
               onAssign={(id, userId)=>assign(id, userId)}

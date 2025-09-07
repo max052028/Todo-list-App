@@ -38,10 +38,6 @@ app.use((req, res, next) => {
       req.userId = undefined;
     }
   }
-  if (!req.userId) {
-    const dev = req.header("x-user-id");
-    if (dev) req.userId = dev;
-  }
   next();
 });
 
@@ -214,7 +210,13 @@ app.delete("/lists/:id", (req, res) => {
 // Memberships
 app.get("/lists/:id/members", (req, res) => {
   const listId = req.params.id;
-  res.json(all("memberships", m => m.listId === listId));
+  const ms = all("memberships", m => m.listId === listId);
+  const enriched = ms.map(m => {
+    const u = findById("users", m.userId);
+    const displayName = u?.name || u?.email || m.userId;
+    return { ...m, displayName };
+  });
+  res.json(enriched);
 });
 
 app.patch("/lists/:id/members/:userId", (req, res) => {

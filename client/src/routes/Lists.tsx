@@ -23,7 +23,8 @@ export default function Lists() {
     if (!name.trim()) return
   await fetchWithCreds('/api/lists', { method: 'POST', headers: headers(), body: JSON.stringify({ name, color }) })
     setName('')
-    load()
+  load()
+  window.dispatchEvent(new Event('lists:changed'))
   }
 
   const onJoin = async (e: FormEvent) => {

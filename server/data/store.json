@@ -4,7 +4,7 @@
       "id": "demo-user",
       "email": "demo@example.com",
       "name": "Demo",
-      "createdAt": 1757253404371
+      "createdAt": 1757259775684
     },
     "alice": {
       "id": "alice",
@@ -31,6 +31,14 @@
       "name": "孟恩歐",
       "createdAt": 1757253733976,
       "googleId": "106032867096747919871"
+    },
+    "691c4353-a061-4ca3-b1b3-f1adeaf99765": {
+      "id": "691c4353-a061-4ca3-b1b3-f1adeaf99765",
+      "email": "max0925@yahoo.com.tw",
+      "name": "歐孟恩",
+      "passwordHash": "$2a$10$gpoiFMOWPJWM6qEOVv68l.t9GsUONMIGTsr73ooJ8r9rAj3VXkWyW",
+      "createdAt": 1757255207671,
+      "googleId": null
     }
   },
   "lists": {
@@ -75,6 +83,13 @@
       "color": "#d90de7",
       "ownerId": "1707043e-00a2-40b0-a561-4657bbeff0db",
       "createdAt": 1757253778241
+    },
+    "64e18d9f-4e5c-47c1-bc7d-0fe35ccba011": {
+      "id": "64e18d9f-4e5c-47c1-bc7d-0fe35ccba011",
+      "name": "h1",
+      "color": "#0ea5e9",
+      "ownerId": "1707043e-00a2-40b0-a561-4657bbeff0db",
+      "createdAt": 1757254991809
     }
   },
   "memberships": {
@@ -161,6 +176,13 @@
       "userId": "61d1d33b-7e84-4107-ac28-76db4428ab5d",
       "role": "member",
       "createdAt": 1757253796499
+    },
+    "b35fc471-f5df-4d56-8203-5424b14c9148": {
+      "id": "b35fc471-f5df-4d56-8203-5424b14c9148",
+      "listId": "64e18d9f-4e5c-47c1-bc7d-0fe35ccba011",
+      "userId": "1707043e-00a2-40b0-a561-4657bbeff0db",
+      "role": "owner",
+      "createdAt": 1757254991809
     }
   },
   "invites": {

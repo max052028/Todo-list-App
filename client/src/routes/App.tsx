@@ -1,27 +1,41 @@
 import { Link, Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { headers as apiHeaders, fetchWithCreds } from '../lib/api'
-import { useEffect, useState } from 'react'
+import { headers as apiHeaders, fetchWithCreds, clearDevUserId } from '../lib/api'
+import { useEffect, useState, useCallback } from 'react'
 
 export default function App() {
   const [lists, setLists] = useState<any[]>([])
   const [me, setMe] = useState<any | null>(null)
   const nav = useNavigate()
-  const loadLists = async () => {
+  const loadLists = useCallback(async () => {
     const res = await fetchWithCreds('/api/lists', { headers: apiHeaders() })
     if (res.status === 401) return
     setLists(await res.json())
-  }
-  const loadMe = async () => {
+  }, [])
+  const loadMe = useCallback(async () => {
     const res = await fetchWithCreds('/api/auth/me', { headers: apiHeaders() })
     if (!res.ok) { setMe(null); nav('/login'); return }
     setMe(await res.json())
-  }
-  useEffect(() => { loadMe(); loadLists() }, [])
+  }, [nav])
+  useEffect(() => { loadMe(); loadLists() }, [loadMe, loadLists])
+
+  // listen to global events to refresh UI without full reload
+  useEffect(() => {
+    const onAuth = () => { loadMe(); loadLists() }
+    const onLists = () => { loadLists() }
+    window.addEventListener('auth:changed', onAuth)
+    window.addEventListener('lists:changed', onLists)
+    return () => {
+      window.removeEventListener('auth:changed', onAuth)
+      window.removeEventListener('lists:changed', onLists)
+    }
+  }, [loadMe, loadLists])
 
   const logout = async () => {
     await fetchWithCreds('/api/auth/logout', { method: 'POST', headers: apiHeaders() })
+  clearDevUserId()
     setMe(null)
     setLists([])
+  window.dispatchEvent(new Event('auth:changed'))
     nav('/login')
   }
 
@@ -49,7 +63,8 @@ export default function App() {
           <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 8 }}>清單</div>
           <ul style={{ display: 'grid', gap: 6 }}>
             {lists.map(l => (
-              <li key={l.id}>
+              <li key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span aria-hidden style={{ width: 10, height: 10, borderRadius: '50%', background: l.color || '#e5e7eb', border: '1px solid #d1d5db' }} />
                 <NavLink to={`/lists/${l.id}`}>{l.name}</NavLink>
               </li>
             ))}
