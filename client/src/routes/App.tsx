@@ -38,6 +38,7 @@ export default function App() {
   window.dispatchEvent(new Event('auth:changed'))
     nav('/login')
   }
+  // Always show the left lists panel across routes
 
   // avatar panel state
   const [open, setOpen] = useState(false)
@@ -65,13 +66,11 @@ export default function App() {
 
   return (
     <div style={{ fontFamily: 'system-ui, Arial', height: '100vh', display: 'grid', gridTemplateRows: '56px 1fr' }}>
-      <header style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', borderBottom: '1px solid #e5e7eb' }}>
-        <Link to="/" style={{ textDecoration: 'none', color: '#0ea5e9', fontWeight: 700 }}>Todo</Link>
-        <nav style={{ display: 'flex', gap: 12 }}>
-          <NavLink to="/" end>Lists</NavLink>
-          <NavLink to="/tasks">All Tasks</NavLink>
-        </nav>
-        <div style={{ position: 'relative' }} ref={panelRef}>
+      {/* Header: 3-column grid so the brand can be perfectly centered */}
+      <header style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', padding: '0 16px', borderBottom: '1px solid #e5e7eb' }}>
+        <div />
+        <Link to="/" style={{ textDecoration: 'none', color: '#0ea5e9', fontWeight: 700, fontSize: 20, justifySelf: 'center' }}>Todo</Link>
+        <div style={{ position: 'relative', justifySelf: 'end' }} ref={panelRef}>
           {me ? (
             <button onClick={(e)=>{ e.stopPropagation(); setOpen(v=>!v) }} style={{ display: 'flex', alignItems: 'center', gap: 8, border: 'none', background: 'transparent', cursor: 'pointer' }}>
               <Avatar src={me.avatar} name={me.name || me.email} />
@@ -93,7 +92,8 @@ export default function App() {
           )}
         </div>
       </header>
-      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', minHeight: 0 }}>
+      {/* Content area: center the grid to bring the left panel closer to the middle on wide screens */}
+  <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', minHeight: 0, maxWidth: 1120, margin: '0 auto', width: '100%', padding: '0 16px' }}>
         <aside style={{ borderRight: '1px solid #e5e7eb', padding: 12, overflow: 'auto' }}>
           <div style={{ fontSize: 16, color: '#6b7280', marginBottom: 8 }}>清單</div>
           <ul style={{ display: 'grid', gap: 6 }}>

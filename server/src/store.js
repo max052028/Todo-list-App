@@ -10,6 +10,7 @@ const empty = {
   memberships: {},
   invites: {},
   tasks: {},
+  events: {},
 };
 
 function ensure() {
@@ -29,6 +30,7 @@ export function writeStore(data) {
 
 export function upsert(table, obj) {
   const db = readStore();
+  if (!db[table]) db[table] = {};
   db[table][obj.id] = obj;
   writeStore(db);
   return obj;
@@ -36,6 +38,7 @@ export function upsert(table, obj) {
 
 export function remove(table, id) {
   const db = readStore();
+  if (!db[table]) db[table] = {};
   delete db[table][id];
   writeStore(db);
 }

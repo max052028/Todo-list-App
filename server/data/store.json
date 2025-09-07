@@ -4,7 +4,7 @@
       "id": "demo-user",
       "email": "demo@example.com",
       "name": "Demo",
-      "createdAt": 1757266156407,
+      "createdAt": 1757274284859,
       "avatar": null,
       "gender": null,
       "birthday": null
@@ -34,7 +34,8 @@
       "email": "max052028@gmail.com",
       "name": "孟恩歐",
       "createdAt": 1757253733976,
-      "googleId": "106032867096747919871"
+      "googleId": "106032867096747919871",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocIWFSGVfLBKG7BLrvTr7-QAS3le8TRTtfRRpC67QRBA3eKiwQ=s96-c"
     },
     "691c4353-a061-4ca3-b1b3-f1adeaf99765": {
       "id": "691c4353-a061-4ca3-b1b3-f1adeaf99765",
@@ -484,11 +485,27 @@
       "dueAt": 1757210700000,
       "estimateMin": null,
       "priority": null,
-      "status": "todo",
+      "status": "done",
       "createdAt": 1757253877646,
-      "completedAt": null,
+      "completedAt": 1757269536130,
       "createdBy": "1707043e-00a2-40b0-a561-4657bbeff0db",
       "assigneeId": "61d1d33b-7e84-4107-ac28-76db4428ab5d"
+    }
+  },
+  "events": {
+    "571bc2af-f223-4965-b86a-3cea4b7e9111": {
+      "id": "571bc2af-f223-4965-b86a-3cea4b7e9111",
+      "listId": "19ef9050-5816-4f51-acc9-d6727434ff48",
+      "type": "task.updated",
+      "at": 1757269536131,
+      "actorId": null,
+      "data": {
+        "taskId": "36ec1992-be86-4db0-830c-26dba717db45",
+        "changed": [
+          "status"
+        ],
+        "actorId": "1707043e-00a2-40b0-a561-4657bbeff0db"
+      }
     }
   }
 }

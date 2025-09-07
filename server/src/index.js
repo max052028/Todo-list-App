@@ -77,6 +77,10 @@ app.use((req, res, next) => {
 // Helpers
 const now = () => Date.now();
 const id = () => crypto.randomUUID();
+function recordEvent(listId, type, data = {}) {
+  const ev = { id: id(), listId, type, at: now(), actorId: null, data };
+  return ev;
+}
 // Normalize various dueAt inputs to epoch ms (number) or null; undefined means unchanged
 function normalizeDueAt(input) {
   if (input === undefined) return undefined;
@@ -281,6 +285,8 @@ app.post("/lists", (req, res) => {
   const l = { id: listId, name, color: color ?? null, ownerId: req.userId, createdAt: now() };
   upsert("lists", l);
   upsert("memberships", { id: id(), listId, userId: req.userId, role: "owner", createdAt: now() });
+  // event
+  upsert("events", recordEvent(listId, "list.created", { name, color, ownerId: req.userId, actorId: req.userId }));
   res.status(201).json(l);
 });
 
@@ -292,6 +298,7 @@ app.patch("/lists/:id", (req, res) => {
   const l0 = findById("lists", listId);
   const l = { ...l0, ...(name && { name }), ...(color && { color }) };
   upsert("lists", l);
+  upsert("events", recordEvent(listId, "list.updated", { name: name ?? null, color: color ?? null, actorId: req.userId }));
   res.json(l);
 });
 
@@ -303,6 +310,7 @@ app.delete("/lists/:id", (req, res) => {
   all("memberships", ms => ms.listId === listId).forEach(ms => remove("memberships", ms.id));
   all("invites", i => i.listId === listId).forEach(i => remove("invites", i.id));
   remove("lists", listId);
+  upsert("events", recordEvent(listId, "list.deleted", { actorId: req.userId }));
   res.status(204).end();
 });
 
@@ -313,7 +321,7 @@ app.get("/lists/:id/members", (req, res) => {
   const enriched = ms.map(m => {
     const u = findById("users", m.userId);
   const displayName = u?.name || u?.email || m.userId;
-  return { ...m, displayName, avatar: u?.avatar ?? null, gender: u?.gender ?? null };
+  return { ...m, displayName, avatar: u?.avatar ?? null, gender: u?.gender ?? null, email: u?.email ?? null };
   });
   res.json(enriched);
 });
@@ -343,6 +351,7 @@ app.patch("/lists/:id/members/:userId", (req, res) => {
     }
   }
   upsert("memberships", { ...target, role });
+  upsert("events", recordEvent(listId, "member.role_changed", { targetUserId, role, actorId: req.userId }));
   res.json({ ok: true });
 });
 
@@ -354,6 +363,7 @@ app.post("/lists/:id/invites", (req, res) => {
   const token = crypto.randomBytes(16).toString("hex");
   const inv = { id: id(), listId, email: (req.body?.email ?? ""), invitedBy: req.userId, token, status: "pending", createdAt: now() };
   upsert("invites", inv);
+  upsert("events", recordEvent(listId, "invite.created", { invitedBy: req.userId, token, email: inv.email, actorId: req.userId }));
   res.status(201).json({ ...inv, joinUrl: `/join/${token}` });
 });
 
@@ -367,6 +377,7 @@ app.post("/join/:token", (req, res) => {
   const existing = all("memberships", x => x.listId === inv.listId && x.userId === req.userId)[0];
   if (!existing) upsert("memberships", { id: id(), listId: inv.listId, userId: req.userId, role: "member", createdAt: now() });
   upsert("invites", { ...inv, status: "accepted" });
+  upsert("events", recordEvent(inv.listId, "invite.accepted", { userId: req.userId, actorId: req.userId }));
   res.json({ ok: true, listId: inv.listId });
 });
 
@@ -389,6 +400,7 @@ app.post("/lists/:id/tasks", (req, res) => {
   if (nd === null && dueAt !== null && dueAt !== undefined) return res.status(400).json({ error: "invalid dueAt" });
   const t = { id: id(), listId, title, notes: notes ?? null, dueAt: nd ?? null, estimateMin: estimateMin ?? null, priority: priority ?? null, status: "todo", createdAt: now(), completedAt: null, createdBy: req.userId, assigneeId: assigneeId ?? null };
   upsert("tasks", t);
+  upsert("events", recordEvent(listId, "task.created", { taskId: t.id, title: t.title, assigneeId: t.assigneeId ?? null, actorId: req.userId }));
   res.status(201).json(t);
 });
 
@@ -411,6 +423,7 @@ app.patch("/tasks/:id", (req, res) => {
   }
   const updated = { ...t, ...(title !== undefined && { title }), ...(notes !== undefined && { notes }), ...dueAtPatch, ...(estimateMin !== undefined && { estimateMin }), ...(priority !== undefined && { priority }), ...(status !== undefined && { status, completedAt }), ...(assigneeId !== undefined && { assigneeId }) };
   upsert("tasks", updated);
+  upsert("events", recordEvent(t.listId, "task.updated", { taskId: t.id, changed: Object.keys({ ...(title!==undefined&&{title}), ...(notes!==undefined&&{notes}), ...(dueAt!==undefined&&{dueAt}), ...(estimateMin!==undefined&&{estimateMin}), ...(priority!==undefined&&{priority}), ...(status!==undefined&&{status}), ...(assigneeId!==undefined&&{assigneeId}) }), actorId: req.userId }));
   res.json(updated);
 });
 
@@ -424,6 +437,7 @@ app.delete("/tasks/:id", (req, res) => {
   const canDelete = canAdmin || t.createdBy === req.userId;
   if (!canDelete) return res.status(403).json({ error: "insufficient rights" });
   remove("tasks", taskId);
+  upsert("events", recordEvent(t.listId, "task.deleted", { taskId, actorId: req.userId }));
   res.status(204).end();
 });
 
@@ -433,6 +447,24 @@ app.get("/tasks", (req, res) => {
   const listIds = new Set(ms.map(m => m.listId));
   const data = all("tasks", t => listIds.has(t.listId));
   res.json(data);
+});
+
+// Events feed (paginated)
+app.get("/lists/:id/events", (req, res) => {
+  const listId = req.params.id;
+  const page = Math.max(1, Number(req.query.page || 1));
+  const pageSize = Math.min(50, Math.max(1, Number(req.query.pageSize || 10)));
+  const events = all("events", e => e.listId === listId).sort((a,b)=> b.at - a.at);
+  const total = events.length;
+  const start = (page - 1) * pageSize;
+  const slice = events.slice(start, start + pageSize).map(ev => {
+    const actor = ev.data?.actorId || ev.actorId || null;
+    const u = actor ? findById("users", actor) : null;
+    const actorName = u?.name || u?.email || actor || null;
+    const actorEmail = u?.email || null;
+    return { ...ev, actorName, actorEmail };
+  });
+  res.json({ page, pageSize, total, items: slice });
 });
 
 const port = Number(process.env.PORT || 4000);

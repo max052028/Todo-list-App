@@ -8,6 +8,7 @@ import GlobalTasks from './routes/GlobalTasks'
 import Join from './routes/Join'
 import Login from './routes/Login'
 import Profile from './routes/Profile'
+import './styles.css'
 
 const router = createBrowserRouter([
   {
@@ -15,7 +16,10 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       { index: true, element: <Lists /> },
-      { path: 'lists/:id', element: <ListDetail /> },
+  { path: 'lists/:id', element: <ListDetail /> },
+  { path: 'lists/:id/stats', element: <ListDetail /> },
+  { path: 'lists/:id/history', element: <ListDetail /> },
+  { path: 'lists/:id/settings', element: <ListDetail /> },
       { path: 'tasks', element: <GlobalTasks /> },
       { path: 'join/:token', element: <Join /> },
   { path: 'login', element: <Login /> },
