@@ -4,13 +4,19 @@
       "id": "demo-user",
       "email": "demo@example.com",
       "name": "Demo",
-      "createdAt": 1757190394041
+      "createdAt": 1757227291714
     },
     "alice": {
       "id": "alice",
       "email": "alice@example.com",
       "name": "alice",
       "createdAt": 1757180826264
+    },
+    "bob": {
+      "id": "bob",
+      "email": "bob@example.com",
+      "name": "bob",
+      "createdAt": 1757227876537
     }
   },
   "lists": {
@@ -106,6 +112,13 @@
       "userId": "demo-user",
       "role": "owner",
       "createdAt": 1757189764870
+    },
+    "a0425267-a302-4563-b54a-f72e560f3251": {
+      "id": "a0425267-a302-4563-b54a-f72e560f3251",
+      "listId": "2398be67-9d38-4fdb-9783-b42711d51f86",
+      "userId": "bob",
+      "role": "member",
+      "createdAt": 1757227876537
     }
   },
   "invites": {
@@ -225,6 +238,15 @@
       "token": "28a1c75ac6741d6f23f5e1564aba08b2",
       "status": "accepted",
       "createdAt": 1757182108823
+    },
+    "005942cb-4b16-48be-bbfc-106c71bade7f": {
+      "id": "005942cb-4b16-48be-bbfc-106c71bade7f",
+      "listId": "2398be67-9d38-4fdb-9783-b42711d51f86",
+      "email": "",
+      "invitedBy": "demo-user",
+      "token": "389902f4ac7f4e0a887d7bbbeea8148e",
+      "status": "accepted",
+      "createdAt": 1757227844421
     }
   },
   "tasks": {
@@ -269,6 +291,20 @@
       "completedAt": null,
       "createdBy": "demo-user",
       "assigneeId": "demo-user"
+    },
+    "0b745101-de8d-447c-92ff-b051f80d8b23": {
+      "id": "0b745101-de8d-447c-92ff-b051f80d8b23",
+      "listId": "2398be67-9d38-4fdb-9783-b42711d51f86",
+      "title": "buy launch",
+      "notes": null,
+      "dueAt": null,
+      "estimateMin": null,
+      "priority": null,
+      "status": "todo",
+      "createdAt": 1757227724190,
+      "completedAt": null,
+      "createdBy": "demo-user",
+      "assigneeId": "alice"
     }
   }
 }
