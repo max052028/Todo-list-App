@@ -1,1 +1,1 @@
-{"root":["./src/main.tsx","./src/components/TaskCard.tsx","./src/lib/api.ts","./src/routes/App.tsx","./src/routes/GlobalTasks.tsx","./src/routes/Join.tsx","./src/routes/ListDetail.tsx","./src/routes/Lists.tsx","./src/routes/Login.tsx"],"version":"5.9.2"}
+{"root":["./src/main.tsx","./src/components/TaskCard.tsx","./src/lib/api.ts","./src/routes/App.tsx","./src/routes/GlobalTasks.tsx","./src/routes/Join.tsx","./src/routes/ListDetail.tsx","./src/routes/Lists.tsx","./src/routes/Login.tsx","./src/routes/Profile.tsx"],"version":"5.9.2"}

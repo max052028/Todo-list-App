@@ -1,6 +1,6 @@
 import { Link, Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { headers as apiHeaders, fetchWithCreds, clearDevUserId } from '../lib/api'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 
 export default function App() {
   const [lists, setLists] = useState<any[]>([])
@@ -39,6 +39,30 @@ export default function App() {
     nav('/login')
   }
 
+  // avatar panel state
+  const [open, setOpen] = useState(false)
+  const panelRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const onDoc = (e: MouseEvent | PointerEvent) => {
+      if (!panelRef.current) return
+      if (!panelRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', onDoc as any)
+    return () => document.removeEventListener('pointerdown', onDoc as any)
+  }, [])
+
+  const Avatar = ({ src, name, size=28 }: { src?: string | null, name?: string, size?: number }) => {
+    const fallback = (name || '?').trim()
+    const initials = fallback ? fallback[0]?.toUpperCase() : '?'
+    const resolved = src && src.startsWith('/uploads') ? `/api${src}` : src
+    if (resolved) return <img src={resolved} alt="avatar" style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', border: '1px solid #e5e7eb' }} />
+    return (
+      <div style={{ width: size, height: size, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#e5e7eb', color: '#374151', fontWeight: 700, fontSize: size*0.45, border: '1px solid #d1d5db' }}>
+        {initials}
+      </div>
+    )
+  }
+
   return (
     <div style={{ fontFamily: 'system-ui, Arial', height: '100vh', display: 'grid', gridTemplateRows: '56px 1fr' }}>
       <header style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', borderBottom: '1px solid #e5e7eb' }}>
@@ -47,20 +71,31 @@ export default function App() {
           <NavLink to="/" end>Lists</NavLink>
           <NavLink to="/tasks">All Tasks</NavLink>
         </nav>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ position: 'relative' }} ref={panelRef}>
           {me ? (
-            <>
-              <small>{me.email || me.name}</small>
-              <button onClick={logout}>Logout</button>
-            </>
+            <button onClick={(e)=>{ e.stopPropagation(); setOpen(v=>!v) }} style={{ display: 'flex', alignItems: 'center', gap: 8, border: 'none', background: 'transparent', cursor: 'pointer' }}>
+              <Avatar src={me.avatar} name={me.name || me.email} />
+            </button>
           ) : (
             <Link to="/login">Login</Link>
+          )}
+          {me && open && (
+            <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 8, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, boxShadow: '0 10px 20px rgba(0,0,0,0.12)', width: 220, zIndex: 1000, padding: 8 }}>
+              <div style={{ padding: 8, borderBottom: '1px solid #f3f4f6' }}>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>{me.name || me.email}</div>
+                <div style={{ fontSize: 12, color: '#6b7280' }}>{me.email}</div>
+              </div>
+              <div style={{ display: 'grid', padding: 8, gap: 6 }}>
+                <Link to="/profile" onClick={()=>setOpen(false)} style={{ textDecoration: 'none' }}>編輯個人檔案</Link>
+                <button onClick={logout} style={{ textAlign: 'left' }}>登出</button>
+              </div>
+            </div>
           )}
         </div>
       </header>
       <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', minHeight: 0 }}>
         <aside style={{ borderRight: '1px solid #e5e7eb', padding: 12, overflow: 'auto' }}>
-          <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 8 }}>清單</div>
+          <div style={{ fontSize: 16, color: '#6b7280', marginBottom: 8 }}>清單</div>
           <ul style={{ display: 'grid', gap: 6 }}>
             {lists.map(l => (
               <li key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

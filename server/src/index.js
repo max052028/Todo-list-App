@@ -2,10 +2,13 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { OAuth2Client } from "google-auth-library";
+import multer from "multer";
 import { all, findById, remove, upsert } from "./store.js";
 
 const app = express();
@@ -14,6 +17,36 @@ app.use(cookieParser());
 app.use(cors({ origin: process.env.CORS_ORIGIN?.split(",") ?? true, credentials: true }));
 
 // JSON store, no external DB
+// Static uploads dir (public)
+const uploadDir = path.resolve(process.cwd(), "data", "uploads");
+fs.mkdirSync(uploadDir, { recursive: true });
+app.use("/uploads", express.static(uploadDir));
+
+// Multer setup for avatar uploads
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname || "").toLowerCase() || mimetypeToExt(file.mimetype) || ".bin";
+    const base = `${req.userId || "anon"}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    cb(null, base + ext);
+  }
+});
+function mimetypeToExt(mt) {
+  if (!mt) return "";
+  if (mt === "image/jpeg") return ".jpg";
+  if (mt === "image/png") return ".png";
+  if (mt === "image/webp") return ".webp";
+  if (mt === "image/gif") return ".gif";
+  return "";
+}
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (!file.mimetype?.startsWith("image/")) return cb(new Error("only image uploads allowed"));
+    cb(null, true);
+  }
+});
 
 // Auth helpers
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
@@ -76,7 +109,7 @@ function normalizeDueAt(input) {
 }
 
 // Bootstrap demo user
-upsert("users", { id: "demo-user", email: "demo@example.com", name: "Demo", createdAt: now() });
+upsert("users", { id: "demo-user", email: "demo@example.com", name: "Demo", createdAt: now(), avatar: null, gender: null, birthday: null });
 
 // Public routes
 // Health
@@ -95,11 +128,11 @@ app.post("/auth/register", async (req, res) => {
   if (exists) return res.status(409).json({ error: "email already in use" });
   const uid = crypto.randomUUID();
   const passwordHash = await bcrypt.hash(String(password), 10);
-  const user = { id: uid, email: emailNorm, name: name?.trim() || emailNorm.split("@")[0], passwordHash, createdAt: now(), googleId: null };
+  const user = { id: uid, email: emailNorm, name: name?.trim() || emailNorm.split("@")[0], passwordHash, createdAt: now(), googleId: null, avatar: null, gender: null, birthday: null };
   upsert("users", user);
   const jwtToken = signToken(uid);
   res.cookie(COOKIE_NAME, jwtToken, { httpOnly: true, sameSite: "lax", secure: COOKIE_SECURE, maxAge: 7 * 24 * 60 * 60 * 1000, path: "/" });
-  res.status(201).json({ id: user.id, email: user.email, name: user.name });
+  res.status(201).json({ id: user.id, email: user.email, name: user.name, avatar: user.avatar });
 });
 
 app.post("/auth/login", async (req, res) => {
@@ -112,7 +145,7 @@ app.post("/auth/login", async (req, res) => {
   if (!ok) return res.status(401).json({ error: "invalid credentials" });
   const jwtToken = signToken(user.id);
   res.cookie(COOKIE_NAME, jwtToken, { httpOnly: true, sameSite: "lax", secure: COOKIE_SECURE, maxAge: 7 * 24 * 60 * 60 * 1000, path: "/" });
-  res.json({ id: user.id, email: user.email, name: user.name });
+  res.json({ id: user.id, email: user.email, name: user.name, avatar: user.avatar });
 });
 
 app.post("/auth/google", async (req, res) => {
@@ -133,14 +166,14 @@ app.post("/auth/google", async (req, res) => {
       user = all("users", u => (u.email || "").toLowerCase() === email)[0];
     }
     if (!user) {
-      user = { id: crypto.randomUUID(), email, name, createdAt: now(), googleId: sub };
+      user = { id: crypto.randomUUID(), email, name, createdAt: now(), googleId: sub, avatar: payload.picture || null, gender: null, birthday: null };
     } else {
-      user = { ...user, email: user.email || email, name: user.name || name, googleId: user.googleId || sub };
+      user = { ...user, email: user.email || email, name: user.name || name, googleId: user.googleId || sub, avatar: user.avatar || payload.picture || null };
     }
     upsert("users", user);
     const jwtToken = signToken(user.id);
     res.cookie(COOKIE_NAME, jwtToken, { httpOnly: true, sameSite: "lax", secure: COOKIE_SECURE, maxAge: 7 * 24 * 60 * 60 * 1000, path: "/" });
-    res.json({ id: user.id, email: user.email, name: user.name });
+    res.json({ id: user.id, email: user.email, name: user.name, avatar: user.avatar });
   } catch (e) {
     console.error("/auth/google error", e?.message || e);
     res.status(401).json({ error: "google auth failed" });
@@ -156,7 +189,7 @@ app.get("/auth/me", (req, res) => {
   if (!req.userId) return res.status(401).json({ error: "unauthorized" });
   const u = findById("users", req.userId);
   if (!u) return res.status(401).json({ error: "unauthorized" });
-  res.json({ id: u.id, email: u.email, name: u.name });
+  res.json({ id: u.id, email: u.email, name: u.name, avatar: u.avatar ?? null, hasPassword: !!u.passwordHash });
 });
 
 // Auth gate for the rest of the API
@@ -166,6 +199,72 @@ app.use((req, res, next) => {
 });
 
 // Users (old /me route removed; use /auth/me)
+// Profile: get my full profile
+app.get("/users/me", (req, res) => {
+  const u = findById("users", req.userId);
+  if (!u) return res.status(404).json({ error: "not found" });
+  res.json({ id: u.id, email: u.email, name: u.name, avatar: u.avatar ?? null, gender: u.gender ?? null, birthday: u.birthday ?? null, hasPassword: !!u.passwordHash });
+});
+
+// Update profile (non-sensitive fields)
+app.patch("/users/me", (req, res) => {
+  const u = findById("users", req.userId);
+  if (!u) return res.status(404).json({ error: "not found" });
+  let { name, avatar, gender, birthday } = req.body ?? {};
+  const next = { ...u };
+  if (name !== undefined) next.name = String(name).trim() || u.name;
+  if (avatar !== undefined) next.avatar = (avatar === null || avatar === "") ? null : String(avatar);
+  if (gender !== undefined) {
+    const g = (gender === null || gender === "") ? null : String(gender);
+    if (g && !["male", "female", "other"].includes(g)) return res.status(400).json({ error: "invalid gender" });
+    next.gender = g;
+  }
+  if (birthday !== undefined) {
+    const b = (birthday === null || birthday === "") ? null : String(birthday);
+    if (b && !/^\d{4}-\d{2}-\d{2}$/.test(b)) return res.status(400).json({ error: "invalid birthday" });
+    next.birthday = b;
+  }
+  upsert("users", next);
+  res.json({ id: next.id, email: next.email, name: next.name, avatar: next.avatar, gender: next.gender, birthday: next.birthday });
+});
+
+// Change password: requires oldPassword and newPassword
+app.patch("/users/me/password", async (req, res) => {
+  const u = findById("users", req.userId);
+  if (!u) return res.status(404).json({ error: "not found" });
+  const { oldPassword, newPassword } = req.body ?? {};
+  if (!oldPassword || !newPassword) return res.status(400).json({ error: "oldPassword and newPassword required" });
+  if (!u.passwordHash) return res.status(400).json({ error: "password not set for this account" });
+  const ok = await bcrypt.compare(String(oldPassword), u.passwordHash);
+  if (!ok) return res.status(401).json({ error: "incorrect old password" });
+  if (String(newPassword).length < 8) return res.status(400).json({ error: "new password too short (min 8)" });
+  const passwordHash = await bcrypt.hash(String(newPassword), 10);
+  upsert("users", { ...u, passwordHash });
+  res.json({ ok: true });
+});
+
+// Upload avatar
+app.post("/users/me/avatar", upload.single("file"), (req, res) => {
+  const u = findById("users", req.userId);
+  if (!u) return res.status(404).json({ error: "not found" });
+  if (!req.file) return res.status(400).json({ error: "file required" });
+  // Cleanup previous avatar if it was a local upload
+  const prev = u.avatar;
+  try {
+    if (prev && /^\/(api\/)?uploads\//.test(prev)) {
+      const rel = prev.replace(/^\/api/, "");
+      const filePath = path.join(process.cwd(), rel.startsWith("/") ? rel.slice(1) : rel);
+      if (filePath.startsWith(uploadDir)) {
+        fs.unlink(filePath, () => {});
+      }
+    }
+  } catch {}
+  const publicPath = `/uploads/${req.file.filename}`;
+  const clientUrl = `/api${publicPath}`;
+  const next = { ...u, avatar: publicPath };
+  upsert("users", next);
+  res.json({ url: publicPath, clientUrl });
+});
 
 // Lists CRUD
 app.get("/lists", (req, res) => {
@@ -213,8 +312,8 @@ app.get("/lists/:id/members", (req, res) => {
   const ms = all("memberships", m => m.listId === listId);
   const enriched = ms.map(m => {
     const u = findById("users", m.userId);
-    const displayName = u?.name || u?.email || m.userId;
-    return { ...m, displayName };
+  const displayName = u?.name || u?.email || m.userId;
+  return { ...m, displayName, avatar: u?.avatar ?? null, gender: u?.gender ?? null };
   });
   res.json(enriched);
 });

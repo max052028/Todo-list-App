@@ -4,7 +4,10 @@
       "id": "demo-user",
       "email": "demo@example.com",
       "name": "Demo",
-      "createdAt": 1757259775684
+      "createdAt": 1757266156407,
+      "avatar": null,
+      "gender": null,
+      "birthday": null
     },
     "alice": {
       "id": "alice",
@@ -23,7 +26,8 @@
       "email": "mwwshchyi@gmail.com",
       "name": "八劍",
       "createdAt": 1757253127245,
-      "googleId": "107870240584251868497"
+      "googleId": "107870240584251868497",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocIFpkjOS8X9O621aY70-k626owjLt39d8GNMtef0FWEPHayB6mG=s96-c"
     },
     "61d1d33b-7e84-4107-ac28-76db4428ab5d": {
       "id": "61d1d33b-7e84-4107-ac28-76db4428ab5d",
