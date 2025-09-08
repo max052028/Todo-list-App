@@ -252,7 +252,7 @@ export default function ListDetail() {
                     task={t}
                     assignees={members.map(m => ({ id: m.userId, label: m.displayName || m.userId }))}
                     isAdmin={isAdmin}
-                    canToggle={isAdmin || t.assigneeId === meId}
+                    canToggle={t.assigneeId === meId}
                     onToggle={()=>toggle(t)}
                     onAssign={(id, userId)=>assign(id, userId)}
                     onDelete={(id)=>removeTask(id)}
@@ -269,7 +269,7 @@ export default function ListDetail() {
                     task={t}
                     assignees={members.map(m => ({ id: m.userId, label: m.displayName || m.userId }))}
                     isAdmin={isAdmin}
-                    canToggle={isAdmin || t.assigneeId === meId}
+                    canToggle={t.assigneeId === meId}
                     onToggle={()=>toggle(t)}
                     onAssign={(id, userId)=>assign(id, userId)}
                     onDelete={(id)=>removeTask(id)}

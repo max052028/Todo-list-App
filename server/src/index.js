@@ -421,9 +421,9 @@ app.patch("/tasks/:id", (req, res) => {
   const canEdit = canAdmin || isCreator || isAssignee;
   if (!canEdit) return res.status(403).json({ error: "insufficient rights" });
   const { title, notes, dueAt, estimateMin, priority, status, assigneeId } = req.body ?? {};
-  // Only assignee can toggle completion state
+  // Only assignee can toggle completion state (admins cannot override)
   if (status !== undefined && status !== t.status) {
-    if (!isAssignee && !canAdmin) return res.status(403).json({ error: "only assignee or admin can change status" });
+    if (!isAssignee) return res.status(403).json({ error: "only assignee can change status" });
   }
   const completedAt = status === "done" && t.status !== "done" ? now() : (status !== undefined ? null : t.completedAt);
   let dueAtPatch = {};
