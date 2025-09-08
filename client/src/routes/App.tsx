@@ -1,8 +1,10 @@
-import { Link, Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { Link, Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { headers as apiHeaders, fetchWithCreds, clearDevUserId } from '../lib/api'
 import { useEffect, useState, useCallback, useRef } from 'react'
 
 export default function App() {
+  const location = useLocation()
+  const isLogin = location.pathname.startsWith('/login')
   const [lists, setLists] = useState<any[]>([])
   const [me, setMe] = useState<any | null>(null)
   const nav = useNavigate()
@@ -92,8 +94,9 @@ export default function App() {
           )}
         </div>
       </header>
-      {/* Content area: center the grid to bring the left panel closer to the middle on wide screens */}
-  <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', minHeight: 0, maxWidth: 1120, margin: '0 auto', width: '100%', padding: '0 16px' }}>
+      {/* Content area: grid; hide left panel on login and center content */}
+      <div style={{ display: 'grid', gridTemplateColumns: isLogin ? '1fr' : '220px 1fr', minHeight: 0, maxWidth: 1120, margin: '0 auto', width: '100%', padding: '0 16px' }}>
+        {!isLogin && (
         <aside style={{ borderRight: '1px solid #e5e7eb', padding: 12, overflow: 'auto' }}>
           <div style={{ fontSize: 16, color: '#6b7280', marginBottom: 8 }}>清單</div>
           <ul style={{ display: 'grid', gap: 6 }}>
@@ -105,7 +108,8 @@ export default function App() {
             ))}
           </ul>
         </aside>
-        <main style={{ padding: 16, overflow: 'auto' }}>
+        )}
+        <main style={{ padding: 16, overflow: 'auto', display: isLogin ? 'flex' : undefined, alignItems: isLogin ? 'center' : undefined, justifyContent: isLogin ? 'center' : undefined, minHeight: isLogin ? 'calc(100vh - 56px)' : undefined }}>
           <Outlet />
         </main>
       </div>

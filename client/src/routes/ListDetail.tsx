@@ -105,6 +105,12 @@ export default function ListDetail() {
     load()
   }
 
+  const removeTask = async (taskId: string) => {
+    if (!confirm('刪除這個任務？')) return
+    await fetchWithCreds(`/api/tasks/${taskId}`, { method: 'DELETE', headers: apiHeaders() })
+    load()
+  }
+
   const createInvite = async () => {
     const res = await fetchWithCreds(`/api/lists/${listId}/invites`, { method: 'POST', headers: apiHeaders() })
     const data = await res.json()
@@ -225,8 +231,10 @@ export default function ListDetail() {
                     task={t}
                     assignees={members.map(m => ({ id: m.userId, label: m.displayName || m.userId }))}
                     isAdmin={isAdmin}
+                    canToggle={isAdmin || t.assigneeId === meId}
                     onToggle={()=>toggle(t)}
                     onAssign={(id, userId)=>assign(id, userId)}
+                    onDelete={(id)=>removeTask(id)}
                   />
                 ))}
               </div>
@@ -240,8 +248,10 @@ export default function ListDetail() {
                     task={t}
                     assignees={members.map(m => ({ id: m.userId, label: m.displayName || m.userId }))}
                     isAdmin={isAdmin}
+                    canToggle={isAdmin || t.assigneeId === meId}
                     onToggle={()=>toggle(t)}
                     onAssign={(id, userId)=>assign(id, userId)}
+                    onDelete={(id)=>removeTask(id)}
                   />
                 ))}
               </div>
@@ -371,6 +381,13 @@ function prettyEvent(ev: any) {
     case 'invite.accepted': return '接受邀請'
     case 'member.role_changed': return '變更成員角色'
     case 'task.created': return `新增任務 ${ev.data?.title || ''}`.trim()
+    case 'task.completed': return '完成任務'
+    case 'task.reopened': return '重開任務'
+    case 'task.reassigned': {
+      const from = ev.data?.from || '未指派'
+      const to = ev.data?.to || '未指派'
+      return `重新指派任務：${from} → ${to}`
+    }
     case 'task.updated': return '更新任務'
     case 'task.deleted': return '刪除任務'
     default: return ev.type

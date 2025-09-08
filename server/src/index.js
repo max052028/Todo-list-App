@@ -411,9 +411,15 @@ app.patch("/tasks/:id", (req, res) => {
   const auth = all("memberships", x => x.listId === t.listId && x.userId === req.userId)[0];
   if (!auth) return res.status(403).json({ error: "forbidden" });
   const canAdmin = ['owner','admin'].includes(auth.role);
-  const canEdit = canAdmin || t.createdBy === req.userId || t.assigneeId === req.userId;
+  const isAssignee = t.assigneeId === req.userId;
+  const isCreator = t.createdBy === req.userId;
+  const canEdit = canAdmin || isCreator || isAssignee;
   if (!canEdit) return res.status(403).json({ error: "insufficient rights" });
   const { title, notes, dueAt, estimateMin, priority, status, assigneeId } = req.body ?? {};
+  // Only assignee can toggle completion state
+  if (status !== undefined && status !== t.status) {
+    if (!isAssignee && !canAdmin) return res.status(403).json({ error: "only assignee or admin can change status" });
+  }
   const completedAt = status === "done" && t.status !== "done" ? now() : (status !== undefined ? null : t.completedAt);
   let dueAtPatch = {};
   if (dueAt !== undefined) {
@@ -423,7 +429,14 @@ app.patch("/tasks/:id", (req, res) => {
   }
   const updated = { ...t, ...(title !== undefined && { title }), ...(notes !== undefined && { notes }), ...dueAtPatch, ...(estimateMin !== undefined && { estimateMin }), ...(priority !== undefined && { priority }), ...(status !== undefined && { status, completedAt }), ...(assigneeId !== undefined && { assigneeId }) };
   upsert("tasks", updated);
-  upsert("events", recordEvent(t.listId, "task.updated", { taskId: t.id, changed: Object.keys({ ...(title!==undefined&&{title}), ...(notes!==undefined&&{notes}), ...(dueAt!==undefined&&{dueAt}), ...(estimateMin!==undefined&&{estimateMin}), ...(priority!==undefined&&{priority}), ...(status!==undefined&&{status}), ...(assigneeId!==undefined&&{assigneeId}) }), actorId: req.userId }));
+  // More specific events
+  if (status !== undefined && status !== t.status) {
+    upsert("events", recordEvent(t.listId, status === "done" ? "task.completed" : "task.reopened", { taskId: t.id, actorId: req.userId }));
+  } else if (assigneeId !== undefined && assigneeId !== t.assigneeId) {
+    upsert("events", recordEvent(t.listId, "task.reassigned", { taskId: t.id, from: t.assigneeId ?? null, to: assigneeId ?? null, actorId: req.userId }));
+  } else {
+    upsert("events", recordEvent(t.listId, "task.updated", { taskId: t.id, changed: Object.keys({ ...(title!==undefined&&{title}), ...(notes!==undefined&&{notes}), ...(dueAt!==undefined&&{dueAt}), ...(estimateMin!==undefined&&{estimateMin}), ...(priority!==undefined&&{priority}) }), actorId: req.userId }));
+  }
   res.json(updated);
 });
 

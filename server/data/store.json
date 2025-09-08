@@ -4,7 +4,7 @@
       "id": "demo-user",
       "email": "demo@example.com",
       "name": "Demo",
-      "createdAt": 1757274284859,
+      "createdAt": 1757314238566,
       "avatar": null,
       "gender": null,
       "birthday": null
@@ -485,9 +485,9 @@
       "dueAt": 1757210700000,
       "estimateMin": null,
       "priority": null,
-      "status": "done",
+      "status": "todo",
       "createdAt": 1757253877646,
-      "completedAt": 1757269536130,
+      "completedAt": null,
       "createdBy": "1707043e-00a2-40b0-a561-4657bbeff0db",
       "assigneeId": "61d1d33b-7e84-4107-ac28-76db4428ab5d"
     }
@@ -505,6 +505,113 @@
           "status"
         ],
         "actorId": "1707043e-00a2-40b0-a561-4657bbeff0db"
+      }
+    },
+    "bcfcf28d-cc18-4691-a245-11cbbf65423b": {
+      "id": "bcfcf28d-cc18-4691-a245-11cbbf65423b",
+      "listId": "19ef9050-5816-4f51-acc9-d6727434ff48",
+      "type": "task.updated",
+      "at": 1757312280313,
+      "actorId": null,
+      "data": {
+        "taskId": "36ec1992-be86-4db0-830c-26dba717db45",
+        "changed": [
+          "status"
+        ],
+        "actorId": "1707043e-00a2-40b0-a561-4657bbeff0db"
+      }
+    },
+    "e955c07b-990f-4a98-8137-ce66c31ef6f5": {
+      "id": "e955c07b-990f-4a98-8137-ce66c31ef6f5",
+      "listId": "19ef9050-5816-4f51-acc9-d6727434ff48",
+      "type": "task.updated",
+      "at": 1757312652658,
+      "actorId": null,
+      "data": {
+        "taskId": "36ec1992-be86-4db0-830c-26dba717db45",
+        "changed": [
+          "assigneeId"
+        ],
+        "actorId": "1707043e-00a2-40b0-a561-4657bbeff0db"
+      }
+    },
+    "c76468fd-1a3a-4495-95bc-76b838d052b4": {
+      "id": "c76468fd-1a3a-4495-95bc-76b838d052b4",
+      "listId": "19ef9050-5816-4f51-acc9-d6727434ff48",
+      "type": "task.completed",
+      "at": 1757313314613,
+      "actorId": null,
+      "data": {
+        "taskId": "36ec1992-be86-4db0-830c-26dba717db45",
+        "actorId": "1707043e-00a2-40b0-a561-4657bbeff0db"
+      }
+    },
+    "c64d540e-0365-4581-9cd3-d8ea9ecc136d": {
+      "id": "c64d540e-0365-4581-9cd3-d8ea9ecc136d",
+      "listId": "19ef9050-5816-4f51-acc9-d6727434ff48",
+      "type": "task.reopened",
+      "at": 1757313317937,
+      "actorId": null,
+      "data": {
+        "taskId": "36ec1992-be86-4db0-830c-26dba717db45",
+        "actorId": "1707043e-00a2-40b0-a561-4657bbeff0db"
+      }
+    },
+    "f0c265b4-c97c-42c5-b730-180c6d6b859a": {
+      "id": "f0c265b4-c97c-42c5-b730-180c6d6b859a",
+      "listId": "19ef9050-5816-4f51-acc9-d6727434ff48",
+      "type": "task.reassigned",
+      "at": 1757313319621,
+      "actorId": null,
+      "data": {
+        "taskId": "36ec1992-be86-4db0-830c-26dba717db45",
+        "from": "1707043e-00a2-40b0-a561-4657bbeff0db",
+        "to": "61d1d33b-7e84-4107-ac28-76db4428ab5d",
+        "actorId": "1707043e-00a2-40b0-a561-4657bbeff0db"
+      }
+    },
+    "bc65c444-59a9-424c-908b-55c40ed99c3e": {
+      "id": "bc65c444-59a9-424c-908b-55c40ed99c3e",
+      "listId": "19ef9050-5816-4f51-acc9-d6727434ff48",
+      "type": "task.completed",
+      "at": 1757313320712,
+      "actorId": null,
+      "data": {
+        "taskId": "36ec1992-be86-4db0-830c-26dba717db45",
+        "actorId": "1707043e-00a2-40b0-a561-4657bbeff0db"
+      }
+    },
+    "fa818981-2b60-490b-bb36-e32d452b76b3": {
+      "id": "fa818981-2b60-490b-bb36-e32d452b76b3",
+      "listId": "19ef9050-5816-4f51-acc9-d6727434ff48",
+      "type": "task.reopened",
+      "at": 1757313322165,
+      "actorId": null,
+      "data": {
+        "taskId": "36ec1992-be86-4db0-830c-26dba717db45",
+        "actorId": "1707043e-00a2-40b0-a561-4657bbeff0db"
+      }
+    },
+    "339c0024-3a77-440a-b926-619eb3d9c955": {
+      "id": "339c0024-3a77-440a-b926-619eb3d9c955",
+      "listId": "19ef9050-5816-4f51-acc9-d6727434ff48",
+      "type": "task.completed",
+      "at": 1757313364713,
+      "actorId": null,
+      "data": {
+        "taskId": "36ec1992-be86-4db0-830c-26dba717db45",
+        "actorId": "61d1d33b-7e84-4107-ac28-76db4428ab5d"
+      }
+    },
+    "d0d0dbd2-d4c7-4f05-9547-d91dbe476715": {
+      "id": "d0d0dbd2-d4c7-4f05-9547-d91dbe476715",
+      "listId": "19ef9050-5816-4f51-acc9-d6727434ff48",
+      "type": "task.reopened",
+      "at": 1757313366933,
+      "actorId": null,
+      "data": {
+        "taskId": "36ec1992-be86-4db0-830c-26dba717db45",
+        "actorId": "61d1d33b-7e84-4107-ac28-76db4428ab5d"
       }
     }
   }
