@@ -360,6 +360,11 @@ app.post("/lists/:id/invites", (req, res) => {
   const listId = req.params.id;
   const me = all("memberships", x => x.listId === listId && x.userId === req.userId)[0];
   if (!me || (me.role !== "owner" && me.role !== "admin")) return res.status(403).json({ error: "forbidden" });
+  // Reuse existing pending invite to make it "permanent"
+  const existing = all("invites", i => i.listId === listId && i.status === "pending")[0];
+  if (existing) {
+    return res.status(200).json({ ...existing, joinUrl: `/join/${existing.token}` });
+  }
   const token = crypto.randomBytes(16).toString("hex");
   const inv = { id: id(), listId, email: (req.body?.email ?? ""), invitedBy: req.userId, token, status: "pending", createdAt: now() };
   upsert("invites", inv);

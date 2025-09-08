@@ -9,6 +9,7 @@ export default function Lists() {
   const [joinInput, setJoinInput] = useState('')
   const [joinMsg, setJoinMsg] = useState<string | null>(null)
   const [globalTasks, setGlobalTasks] = useState<any[]>([])
+  const listNameById = useMemo(() => Object.fromEntries(lists.map(l => [l.id, l.name])), [lists])
 
   const load = async () => {
     const res = await fetchWithCreds('/api/lists', { headers: headers() })
@@ -58,11 +59,11 @@ export default function Lists() {
         <h2 style={{ margin: 0 }}>我的任務</h2>
         <div className="muted">快速查看所有清單中的任務</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
-          {[...grouped.todo, ...grouped.done].slice(0, 8).map(t => (
+      {[...grouped.todo, ...grouped.done].slice(0, 8).map(t => (
             <div key={t.id} className="card card-pad" style={{ display: 'grid', gap: 6 }}>
               <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</div>
               <div className="muted">狀態：{t.status}</div>
-              <div className="muted">清單：{t.listId}</div>
+        <div className="muted">清單：{listNameById[t.listId] || t.listId}</div>
             </div>
           ))}
         </div>

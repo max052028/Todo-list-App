@@ -11,6 +11,7 @@ type Props = {
 export default function TaskCard({ task, assignees = [], isAdmin, onToggle, onAssign, onDelete, canToggle }: Props) {
   const due = task.dueAt ? new Date(Number(task.dueAt)) : null
   const assignee = task.assigneeId || ''
+  const assigneeLabel = assignee ? (assignees.find(a=>a.id===assignee)?.label || assignee) : '未指派'
   return (
     <div className="card" style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8, position: 'relative' }}>
       {isAdmin && (
@@ -38,7 +39,7 @@ export default function TaskCard({ task, assignees = [], isAdmin, onToggle, onAs
                 <option key={a.id} value={a.id}>{a.label || a.id}</option>
               ))}
             </select>
-          ) : (assignee || '未指派')}
+          ) : assigneeLabel}
         </div>
         <div>
           截止：{due ? due.toLocaleString() : '未設定'}

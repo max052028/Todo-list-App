@@ -20,6 +20,7 @@ export default function ListDetail() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [title, setTitle] = useState('')
   const [invite, setInvite] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
   const [members, setMembers] = useState<any[]>([])
   const [meId, setMeId] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
@@ -113,8 +114,23 @@ export default function ListDetail() {
 
   const createInvite = async () => {
     const res = await fetchWithCreds(`/api/lists/${listId}/invites`, { method: 'POST', headers: apiHeaders() })
-    const data = await res.json()
-    setInvite(`${location.origin}/join/${data.token}`)
+    let data: any = null
+    try { data = await res.json() } catch { data = null }
+    if (!res.ok || !data) {
+      alert(data?.error || '建立邀請連結失敗')
+      return
+    }
+    const urlStr = data.joinUrl ? new URL(data.joinUrl, location.origin).toString() : (data.token ? new URL(`/join/${data.token}`, location.origin).toString() : '')
+    if (!urlStr) {
+      alert('建立邀請連結失敗（缺少 token）')
+      return
+    }
+    setInvite(urlStr)
+    try {
+      await navigator.clipboard.writeText(urlStr)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1600)
+    } catch {}
   }
 
   const changeRole = async (userId: string, role: 'owner'|'admin'|'member') => {
@@ -151,6 +167,11 @@ export default function ListDetail() {
       {error && (
         <div style={{ gridColumn: '1 / -1', background: '#fef2f2', color: '#991b1b', padding: 8, border: '1px solid #fecaca', borderRadius: 6 }}>
           {error}
+        </div>
+      )}
+      {copied && (
+        <div style={{ position: 'fixed', right: 16, top: 72, background: '#111827', color: '#fff', padding: '8px 12px', borderRadius: 8, boxShadow: '0 8px 20px rgba(0,0,0,0.2)', zIndex: 2000, opacity: 0.95 }}>
+          已複製邀請連結
         </div>
       )}
   <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
@@ -275,7 +296,11 @@ export default function ListDetail() {
         <aside className="right-panel">
           <section>
             <h3>分享</h3>
-            <button className="btn" onClick={createInvite}>建立邀請連結</button>
+            {isAdmin ? (
+              <button className="btn" onClick={createInvite}>建立邀請連結</button>
+            ) : (
+              <div className="muted">只有 Owner / Admin 可建立或複製邀請連結</div>
+            )}
             {invite && (<div style={{ marginTop: 6 }}><input className="input" readOnly value={invite} style={{ width: 260 }} /></div>)}
           </section>
           <section>
